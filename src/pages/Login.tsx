@@ -24,12 +24,12 @@ const Login = () => {
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' } as LoginForm,
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await login(data);
+      await login({ email: data.email, password: data.password });
       navigate('/');
     } catch (error) {
       // Error handled in context

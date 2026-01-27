@@ -37,35 +37,35 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-lg">
+    <Card className="group overflow-hidden card-hover border-0 shadow-md bg-card">
       <Link to={`/products/${product._id}`}>
-        <div className="relative aspect-square overflow-hidden">
+        <div className="relative aspect-square overflow-hidden bg-secondary/30">
           <img
             src={product.image}
             alt={product.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           
           {/* Badges */}
-          <div className="absolute left-2 top-2 flex flex-col gap-1">
+          <div className="absolute left-3 top-3 flex flex-col gap-2">
             {discount > 0 && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge className="bg-destructive text-destructive-foreground font-bold px-2.5 py-1 text-xs rounded-full">
                 -{discount}%
               </Badge>
             )}
             {product.isDigital && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="font-medium px-2.5 py-1 text-xs rounded-full">
                 Digital
               </Badge>
             )}
             {product.stock < 10 && product.stock > 0 && (
-              <Badge variant="outline" className="bg-background text-xs">
+              <Badge variant="outline" className="bg-background font-medium px-2.5 py-1 text-xs rounded-full">
                 Low Stock
               </Badge>
             )}
             {product.stock === 0 && (
-              <Badge variant="destructive" className="text-xs">
-                Out of Stock
+              <Badge className="bg-destructive text-destructive-foreground font-medium px-2.5 py-1 text-xs rounded-full">
+                Sold Out
               </Badge>
             )}
           </div>
@@ -75,8 +75,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
             variant="secondary"
             size="icon"
             className={cn(
-              "absolute right-2 top-2 h-8 w-8 rounded-full opacity-0 transition-all group-hover:opacity-100",
-              inWishlist && "opacity-100 bg-red-100 text-red-600 hover:bg-red-200"
+              "absolute right-3 top-3 h-9 w-9 rounded-full shadow-lg opacity-0 transition-all duration-300 group-hover:opacity-100",
+              inWishlist && "opacity-100 bg-destructive text-destructive-foreground hover:bg-destructive/90"
             )}
             onClick={handleWishlistClick}
           >
@@ -84,39 +84,38 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Button>
 
           {/* Quick Add to Cart */}
-          <div className="absolute bottom-0 left-0 right-0 translate-y-full bg-background/95 p-2 backdrop-blur transition-transform group-hover:translate-y-0">
+          <div className="absolute bottom-0 left-0 right-0 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
             <Button
-              className="w-full"
-              size="sm"
+              className="w-full rounded-none h-12 btn-gradient font-semibold"
               onClick={handleAddToCart}
               disabled={product.stock === 0 || inCart}
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
-              {inCart ? 'In Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              {inCart ? 'Added to Cart' : product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
             </Button>
           </div>
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-2">
           {/* Category */}
-          <p className="text-xs text-muted-foreground mb-1">{product.category}</p>
+          <p className="text-xs font-medium text-primary uppercase tracking-wide">{product.category}</p>
           
           {/* Title */}
-          <h3 className="font-medium line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold line-clamp-2 text-foreground group-hover:text-primary transition-colors">
             {product.title}
           </h3>
 
           {/* Rating */}
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex items-center">
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
                   className={cn(
-                    "h-3 w-3",
+                    "h-3.5 w-3.5",
                     i < Math.floor(product.rating)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground"
+                      ? "fill-primary text-primary"
+                      : "fill-muted text-muted"
                   )}
                 />
               ))}
@@ -127,8 +126,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
 
           {/* Price */}
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold">${product.price.toFixed(2)}</span>
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-xl font-bold text-foreground">${product.price.toFixed(2)}</span>
             {product.originalPrice && (
               <span className="text-sm text-muted-foreground line-through">
                 ${product.originalPrice.toFixed(2)}
