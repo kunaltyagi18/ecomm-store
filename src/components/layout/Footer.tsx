@@ -1,96 +1,127 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Mail } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Facebook, Instagram, Twitter, Youtube, Store, CreditCard, Truck, ShieldCheck } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="border-t bg-muted/50">
-      <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="text-lg font-bold text-primary-foreground">S</span>
+    <footer className="bg-foreground text-background">
+      {/* Trust Badges */}
+      <div className="border-b border-background/10">
+        <div className="container py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-background/10 flex items-center justify-center">
+                <Truck className="h-6 w-6" />
               </div>
-              <span className="text-xl font-bold">ShopHub</span>
+              <div>
+                <p className="font-semibold">Free Shipping</p>
+                <p className="text-sm text-background/60">On orders over $50</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-background/10 flex items-center justify-center">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-semibold">Secure Payment</p>
+                <p className="text-sm text-background/60">100% protected</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-background/10 flex items-center justify-center">
+                <CreditCard className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-semibold">Easy Returns</p>
+                <p className="text-sm text-background/60">30 day returns</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-background/10 flex items-center justify-center">
+                <Store className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-semibold">Quality Products</p>
+                <p className="text-sm text-background/60">Top brands only</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer */}
+      <div className="container py-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+          {/* Brand */}
+          <div className="col-span-2">
+            <Link to="/" className="flex items-center gap-2 font-bold text-2xl mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                <Store className="h-5 w-5 text-primary-foreground" />
+              </div>
+              ShopHub
             </Link>
-            <p className="text-sm text-muted-foreground">
-              Your one-stop destination for quality products at amazing prices.
+            <p className="text-background/70 mb-6 max-w-xs">
+              Your destination for quality products. We bring you the best brands at competitive prices.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+            <div className="flex gap-3">
+              <a href="#" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a href="#" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                <Instagram className="h-5 w-5" />
+              <a href="#" className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
+                <Youtube className="h-5 w-5" />
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold">Quick Links</h4>
-            <nav className="flex flex-col gap-2">
-              <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground">
-                All Products
-              </Link>
-              <Link to="/products?category=Electronics" className="text-sm text-muted-foreground hover:text-foreground">
-                Electronics
-              </Link>
-              <Link to="/products?category=Fashion" className="text-sm text-muted-foreground hover:text-foreground">
-                Fashion
-              </Link>
-              <Link to="/products?category=Digital Products" className="text-sm text-muted-foreground hover:text-foreground">
-                Digital Products
-              </Link>
-            </nav>
+          {/* Shop */}
+          <div>
+            <h4 className="font-semibold text-lg mb-4">Shop</h4>
+            <ul className="space-y-3">
+              <li><Link to="/products" className="text-background/70 hover:text-primary transition-colors">All Products</Link></li>
+              <li><Link to="/products?category=Electronics" className="text-background/70 hover:text-primary transition-colors">Electronics</Link></li>
+              <li><Link to="/products?category=Clothing" className="text-background/70 hover:text-primary transition-colors">Clothing</Link></li>
+              <li><Link to="/products?sort=newest" className="text-background/70 hover:text-primary transition-colors">New Arrivals</Link></li>
+            </ul>
           </div>
 
-          {/* Customer Service */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold">Customer Service</h4>
-            <nav className="flex flex-col gap-2">
-              <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground">
-                Contact Us
-              </Link>
-              <Link to="/faq" className="text-sm text-muted-foreground hover:text-foreground">
-                FAQs
-              </Link>
-              <Link to="/shipping" className="text-sm text-muted-foreground hover:text-foreground">
-                Shipping Info
-              </Link>
-              <Link to="/returns" className="text-sm text-muted-foreground hover:text-foreground">
-                Returns & Exchanges
-              </Link>
-            </nav>
+          {/* Account */}
+          <div>
+            <h4 className="font-semibold text-lg mb-4">Account</h4>
+            <ul className="space-y-3">
+              <li><Link to="/login" className="text-background/70 hover:text-primary transition-colors">Sign In</Link></li>
+              <li><Link to="/register" className="text-background/70 hover:text-primary transition-colors">Register</Link></li>
+              <li><Link to="/cart" className="text-background/70 hover:text-primary transition-colors">Cart</Link></li>
+              <li><Link to="/orders" className="text-background/70 hover:text-primary transition-colors">My Orders</Link></li>
+            </ul>
           </div>
 
-          {/* Newsletter */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold">Newsletter</h4>
-            <p className="text-sm text-muted-foreground">
-              Subscribe to get special offers and updates.
-            </p>
-            <form className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="Your email"
-                className="flex-1"
-              />
-              <Button type="submit" size="icon">
-                <Mail className="h-4 w-4" />
-              </Button>
-            </form>
+          {/* Support */}
+          <div>
+            <h4 className="font-semibold text-lg mb-4">Support</h4>
+            <ul className="space-y-3">
+              <li><a href="#" className="text-background/70 hover:text-primary transition-colors">Help Center</a></li>
+              <li><a href="#" className="text-background/70 hover:text-primary transition-colors">Shipping Info</a></li>
+              <li><a href="#" className="text-background/70 hover:text-primary transition-colors">Returns & Refunds</a></li>
+              <li><a href="#" className="text-background/70 hover:text-primary transition-colors">Contact Us</a></li>
+            </ul>
           </div>
         </div>
+      </div>
 
-        <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} ShopHub. All rights reserved.</p>
+      {/* Bottom Bar */}
+      <div className="border-t border-background/10">
+        <div className="container py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-background/60">© 2024 ShopHub. All rights reserved.</p>
+          <div className="flex items-center gap-6 text-sm text-background/60">
+            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-primary transition-colors">Cookie Policy</a>
+          </div>
         </div>
       </div>
     </footer>
