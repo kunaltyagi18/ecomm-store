@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import OrderDetailsModal from '@/components/order/OrderDetailsModal';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -34,6 +35,7 @@ const Profile = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -215,7 +217,7 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-bold text-lg">${order.totalAmount.toFixed(2)}</span>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(order)}>
                           View Details
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
@@ -318,6 +320,13 @@ const Profile = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        open={!!selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+      />
     </div>
   );
 };
