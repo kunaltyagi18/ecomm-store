@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Wishlist from "./pages/Wishlist";
@@ -70,7 +71,7 @@ const App = () => (
                         <Route path="/register" element={<Register />} />
                         <Route path="/wishlist" element={<Wishlist />} />
                         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                        <Route path="/checkout" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+                        <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
                         <Route path="/orders" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
