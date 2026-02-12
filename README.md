@@ -27,7 +27,9 @@ A full-stack e-commerce application built with React, TypeScript, and Node.js/Ex
 ### Backend
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web server framework
-- **MongoDB** - NoSQL database (recommended)
+- **PostgreSQL** - Relational SQL database
+- **pg** - PostgreSQL client for Node.js
+- **bcryptjs** - Password hashing
 - **JWT** - Authentication tokens
 
 ## 📋 Prerequisites
@@ -36,7 +38,7 @@ Before you begin, ensure you have the following installed:
 - **Node.js** (v14 or higher)
 - **npm** or **yarn** or **bun**
 - **Git**
-- **MongoDB** (for backend database)
+- **PostgreSQL** (v12 or higher) - Download from [postgresql.org](https://www.postgresql.org/download/)
 
 ## 🚀 Installation
 
@@ -46,7 +48,13 @@ git clone https://github.com/kunaltyagi18/ecomm-store.git
 cd ecomm-store
 ```
 
-### 2. Setup Backend
+### 2. Setup PostgreSQL Database
+```bash
+# Create a new PostgreSQL database
+createdb ecomm_store
+```
+
+### 3. Setup Backend
 ```bash
 cd backend
 npm install
@@ -57,12 +65,23 @@ yarn install
 Create a `.env` file in the backend directory:
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/ecomm-store
-JWT_SECRET=your_jwt_secret_key
 NODE_ENV=development
+
+# PostgreSQL Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_postgres_password
+DB_NAME=ecomm_store
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key_here_should_be_long_and_random
+
+# Frontend URL
+FRONTEND_URL=http://localhost:5173
 ```
 
-### 3. Setup Frontend
+### 4. Setup Frontend
 ```bash
 cd ../Frontend
 npm install
@@ -81,12 +100,14 @@ VITE_API_BASE_URL=http://localhost:5000/api
 ecomm-store/
 ├── backend/                          # Backend server
 │   ├── src/
+│   │   ├── db/                      # Database connection & initialization
 │   │   ├── controllers/             # Route handlers
 │   │   ├── models/                  # Database models (User, Product, Order)
 │   │   ├── routes/                  # API endpoints
 │   │   ├── middleware/              # Custom middleware
 │   │   └── server.js                # Main server file
 │   ├── package.json
+│   ├── .env.example                 # Environment variables template
 │   └── .gitignore
 │
 ├── Frontend/                         # React frontend application

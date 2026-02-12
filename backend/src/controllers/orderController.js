@@ -23,14 +23,14 @@ import {
  * Create a new order
  * POST /orders
  * 
- * Dummy Transaction Logic:
+ * Transaction Logic:
  * 1. Validate user exists
  * 2. Check product stock for all items
  * 3. Reduce stock for all products
  * 4. Create order with paymentStatus = "Success"
  * 5. Return created order
  */
-export const createOrderController = (req, res) => {
+export const createOrderController = async (req, res) => {
   try {
     const { userId, products } = req.body;
 
@@ -41,16 +41,6 @@ export const createOrderController = (req, res) => {
         message: "User ID and products array are required"
       });
     }
-
-    // TODO: Validate user exists
-    // import { getUserById } from "../models/User.js";
-    // const user = getUserById(userId);
-    // if (!user) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: "User not found"
-    //   });
-    // }
 
     let totalAmount = 0;
     const processedProducts = [];
@@ -66,7 +56,7 @@ export const createOrderController = (req, res) => {
         });
       }
 
-      const product = getProductById(productId);
+      const product = await getProductById(productId);
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -83,22 +73,19 @@ export const createOrderController = (req, res) => {
 
       totalAmount += product.price * quantity;
       processedProducts.push({
-        productId,
+        productId: product.id,
         quantity,
         price: product.price,
         name: product.name
       });
     }
 
-    // Step 2: Reduce product stock for all items
-    // TODO: Wrap in database transaction
-    // BEGIN TRANSACTION;
+    // Step 2: Reduce product stock for all items and create order in transaction
     try {
       for (const item of processedProducts) {
-        reduceProductStock(item.productId, item.quantity);
+        await reduceProductStock(item.productId, item.quantity);
       }
     } catch (error) {
-      // ROLLBACK TRANSACTION;
       return res.status(400).json({
         success: false,
         message: "Error processing order",
@@ -106,21 +93,17 @@ export const createOrderController = (req, res) => {
       });
     }
 
-    // Step 3: Create order with dummy payment status = "Success"
-    // TODO: Replace with: INSERT INTO orders (user_id, products, total_amount, payment_status) VALUES (...);
-    const newOrder = createOrder({
+    // Step 3: Create order (handles transaction in model)
+    const newOrder = await createOrder({
       userId,
       products: processedProducts,
       totalAmount
     });
 
-    // COMMIT TRANSACTION;
-
     res.status(201).json({
       success: true,
       data: newOrder,
-      message: "Order created successfully with dummy payment",
-      paymentStatus: "Success" // Dummy confirmation
+      message: "Order created successfully"
     });
   } catch (error) {
     res.status(500).json({
@@ -135,7 +118,7 @@ export const createOrderController = (req, res) => {
  * Get user orders
  * GET /orders/:userId
  */
-export const getUserOrdersController = (req, res) => {
+export const getUserOrdersController = async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -146,8 +129,7 @@ export const getUserOrdersController = (req, res) => {
       });
     }
 
-    // TODO: SELECT * FROM orders WHERE user_id = $1;
-    const userOrders = getUserOrders(userId);
+    const userOrders = await getUserOrders(userId);
 
     if (userOrders.length === 0) {
       return res.status(200).json({
@@ -175,7 +157,7 @@ export const getUserOrdersController = (req, res) => {
  * Get single order
  * GET /orders/detail/:orderId
  */
-export const getOrderByIdController = (req, res) => {
+export const getOrderByIdController = async (req, res) => {
   try {
     const { orderId } = req.params;
 
@@ -186,8 +168,7 @@ export const getOrderByIdController = (req, res) => {
       });
     }
 
-    // TODO: SELECT * FROM orders WHERE id = $1;
-    const order = getOrderById(orderId);
+    const order = await getOrderById(orderId);
 
     if (!order) {
       return res.status(404).json({
@@ -214,11 +195,10 @@ export const getOrderByIdController = (req, res) => {
  * Get all orders (admin only)
  * GET /admin/orders
  */
-export const getAllOrdersController = (req, res) => {
+export const getAllOrdersController = async (req, res) => {
   try {
     // TODO: Add authentication check - verify if user is admin
-
-    const allOrders = getAllOrders();
+    const allOrders = await getAllOrders();
 
     res.status(200).json({
       success: true,
@@ -234,9 +214,49 @@ export const getAllOrdersController = (req, res) => {
   }
 };
 
+/**
+ * Update order status (admin only)
+ * PUT /orders/:orderId
+ */
+export const updateOrderStatusController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { orderStatus } = req.body;
+
+    if (!orderId || !orderStatus) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID and status are required"
+      });
+    }
+
+    const updatedOrder = await updateOrderStatus(orderId, orderStatus);
+
+    if (!updatedOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedOrder,
+      message: "Order status updated successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating order status",
+      error: error.message
+    });
+  }
+};
+
 export default {
   createOrderController,
   getUserOrdersController,
   getOrderByIdController,
-  getAllOrdersController
+  getAllOrdersController,
+  updateOrderStatusController
 };

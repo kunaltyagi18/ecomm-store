@@ -1,87 +1,150 @@
 /**
  * User Model
- * In-memory data storage for users
- * Replace with PostgreSQL queries later
+ * PostgreSQL database queries for users
  */
 
-// In-memory storage for users
-let users = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    password: "hashed_password_123", // In real app, use bcrypt
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    password: "hashed_password_456",
-    createdAt: new Date().toISOString()
-  },
-];
-
-let userCounter = users.length;
+import { query } from '../db/connection.js';
+import bcryptjs from 'bcryptjs';
 
 /**
  * Get all users (admin only)
- * TODO: Replace with: SELECT * FROM users;
+ * SELECT * FROM users;
  */
-export const getAllUsers = () => {
-  return users;
+export const getAllUsers = async () => {
+  try {
+    const result = await query(
+      'SELECT id, name, email, created_at, updated_at FROM users ORDER BY created_at DESC'
+    );
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
 };
 
 /**
  * Get user by ID
- * TODO: Replace with: SELECT * FROM users WHERE id = $1;
+ * SELECT * FROM users WHERE id = $1;
  */
-export const getUserById = (id) => {
-  return users.find(user => user.id === id);
+export const getUserById = async (id) => {
+  try {
+    const result = await query(
+      'SELECT id, name, email, created_at, updated_at FROM users WHERE id = $1',
+      [id]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    throw error;
+  }
 };
 
 /**
  * Get user by email
- * TODO: Replace with: SELECT * FROM users WHERE email = $1;
+ * SELECT * FROM users WHERE email = $1;
  */
-export const getUserByEmail = (email) => {
-  return users.find(user => user.email === email);
+export const getUserByEmail = async (email) => {
+  try {
+    const result = await query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching user by email:', error);
+    throw error;
+  }
 };
 
 /**
  * Create a new user
- * TODO: Replace with: INSERT INTO users (name, email, password) VALUES ($1, $2, $3);
+ * INSERT INTO users (name, email, password) VALUES ($1, $2, $3);
  */
-export const createUser = (userData) => {
-  const existingUser = getUserByEmail(userData.email);
-  if (existingUser) {
-    throw new Error("User with this email already exists");
+export const createUser = async (userData) => {
+  try {
+    const existingUser = await getUserByEmail(userData.email);
+    if (existingUser) {
+      throw new Error("User with this email already exists");
+    }
+
+    // Hash password
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(userData.password, salt);
+
+    const result = await query(
+      `INSERT INTO users (name, email, password)
+       VALUES ($1, $2, $3)
+       RETURNING id, name, email, created_at, updated_at`,
+      [userData.name, userData.email, hashedPassword]
+    );
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
   }
+};
 
-  const newUser = {
-    id: String(++userCounter),
-    name: userData.name,
-    email: userData.email,
-    password: userData.password, // In production, hash this with bcrypt
-    createdAt: new Date().toISOString()
-  };
+/**
+ * Verify user password
+ */
+export const verifyUserPassword = async (email, password) => {
+  try {
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return null;
+    }
 
-  users.push(newUser);
-  return newUser;
+    const isValidPassword = await bcryptjs.compare(password, user.password);
+    if (!isValidPassword) {
+      return null;
+    }
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    throw error;
+  }
 };
 
 /**
  * Update user details
- * TODO: Replace with: UPDATE users SET name = $1, email = $2 WHERE id = $3;
+ * UPDATE users SET name = $1, email = $2 WHERE id = $3;
  */
-export const updateUser = (id, updateData) => {
-  const user = getUserById(id);
-  if (!user) return null;
+export const updateUser = async (id, updateData) => {
+  try {
+    const { name, email } = updateData;
+    const result = await query(
+      `UPDATE users 
+       SET name = COALESCE($1, name),
+           email = COALESCE($2, email),
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3
+       RETURNING id, name, email, created_at, updated_at`,
+      [name, email, id]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw error;
+  }
+};
 
-  const updatedUser = { ...user, ...updateData };
-  const index = users.findIndex(u => u.id === id);
-  users[index] = updatedUser;
-  return updatedUser;
+/**
+ * Delete user
+ */
+export const deleteUser = async (id) => {
+  try {
+    const result = await query(
+      'DELETE FROM users WHERE id = $1 RETURNING id',
+      [id]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
 };
 
 export default {

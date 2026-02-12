@@ -3,13 +3,7 @@
  * Ecomm Hub Backend
  * 
  * This is the main entry point for the backend server.
- * Currently uses in-memory data storage.
- * 
- * TODO: Replace in-memory storage with PostgreSQL:
- * - Install: npm install pg
- * - Create database connection pool
- * - Replace all model functions with SQL queries
- * - Add connection pooling and error handling
+ * Uses PostgreSQL for data storage with connection pooling.
  */
 
 import express from "express";
@@ -18,6 +12,10 @@ import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { initializeDatabase } from "./db/connection.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -109,13 +107,20 @@ app.use(errorHandler);
    SERVER START
    ============================================ */
 
-app.listen(PORT, () => {
-  console.log(`
+const startServer = async () => {
+  try {
+    // Initialize database
+    await initializeDatabase();
+    
+    app.listen(PORT, () => {
+      console.log(`
 ╔════════════════════════════════════════════════╗
-║         Ecomm Hub Backend Server              ║
+║      Ecomm Hub Backend (PostgreSQL)           ║
 ║                                                ║
 ║  Server is running on: http://localhost:${PORT}  ║
 ║  Health Check: http://localhost:${PORT}/health  ║
+║                                                ║
+║  Database: PostgreSQL Connected               ║
 ║                                                ║
 ║  Available Endpoints:                          ║
 ║  • GET  /api/products                         ║
@@ -126,7 +131,14 @@ app.listen(PORT, () => {
 ║  • GET  /api/orders/:userId                   ║
 ║                                                ║
 ╚════════════════════════════════════════════════╝
-  `);
-});
+      `);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;

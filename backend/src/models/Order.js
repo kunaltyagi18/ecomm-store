@@ -1,95 +1,138 @@
 /**
  * Order Model
- * In-memory data storage for orders
- * Replace with PostgreSQL queries later
+ * PostgreSQL database queries for orders
  */
 
-// In-memory storage for orders
-let orders = [
-  {
-    id: "1",
-    userId: "1",
-    products: [
-      { productId: "1", quantity: 1, price: 99.99 }
-    ],
-    totalAmount: 99.99,
-    paymentStatus: "Success",
-    orderStatus: "Delivered",
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "2",
-    userId: "1",
-    products: [
-      { productId: "3", quantity: 2, price: 29.99 },
-      { productId: "2", quantity: 1, price: 12.99 }
-    ],
-    totalAmount: 72.97,
-    paymentStatus: "Success",
-    orderStatus: "Processing",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-  },
-];
-
-let orderCounter = orders.length;
+import { query, getClient } from '../db/connection.js';
 
 /**
  * Get all orders (admin only)
- * TODO: Replace with: SELECT * FROM orders;
+ * SELECT * FROM orders;
  */
-export const getAllOrders = () => {
-  return orders;
+export const getAllOrders = async () => {
+  try {
+    const result = await query(`
+      SELECT o.*, 
+             json_agg(json_build_object('productId', oi.product_id, 'quantity', oi.quantity, 'price', oi.price)) as products
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+    `);
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
+  }
 };
 
 /**
  * Get user orders by user ID
- * TODO: Replace with: SELECT * FROM orders WHERE user_id = $1;
+ * SELECT * FROM orders WHERE user_id = $1;
  */
-export const getUserOrders = (userId) => {
-  return orders.filter(order => order.userId === userId);
+export const getUserOrders = async (userId) => {
+  try {
+    const result = await query(`
+      SELECT o.*, 
+             json_agg(json_build_object('productId', oi.product_id, 'quantity', oi.quantity, 'price', oi.price)) as products
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      WHERE o.user_id = $1
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
+    `, [userId]);
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    throw error;
+  }
 };
 
 /**
  * Get order by ID
- * TODO: Replace with: SELECT * FROM orders WHERE id = $1;
+ * SELECT * FROM orders WHERE id = $1;
  */
-export const getOrderById = (id) => {
-  return orders.find(order => order.id === id);
+export const getOrderById = async (id) => {
+  try {
+    const result = await query(`
+      SELECT o.*, 
+             json_agg(json_build_object('productId', oi.product_id, 'quantity', oi.quantity, 'price', oi.price)) as products
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      WHERE o.id = $1
+      GROUP BY o.id
+    `, [id]);
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    throw error;
+  }
 };
 
 /**
  * Create a new order
- * TODO: Replace with: INSERT INTO orders (user_id, products, total_amount, payment_status) VALUES ($1, $2, $3, $4);
+ * Handles transaction for order and order_items
  */
-export const createOrder = (orderData) => {
-  const newOrder = {
-    id: String(++orderCounter),
-    userId: orderData.userId,
-    products: orderData.products, // Array of { productId, quantity, price }
-    totalAmount: orderData.totalAmount,
-    paymentStatus: "Success", // Dummy payment always succeeds
-    orderStatus: "Processing",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
+export const createOrder = async (orderData) => {
+  const client = await getClient();
+  
+  try {
+    await client.query('BEGIN');
 
-  orders.push(newOrder);
-  return newOrder;
+    // Insert order
+    const orderResult = await client.query(
+      `INSERT INTO orders (user_id, total_amount, payment_status, order_status)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [orderData.userId, orderData.totalAmount, 'Success', 'Processing']
+    );
+
+    const order = orderResult.rows[0];
+
+    // Insert order items
+    for (const product of orderData.products) {
+      await client.query(
+        `INSERT INTO order_items (order_id, product_id, quantity, price)
+         VALUES ($1, $2, $3, $4)`,
+        [order.id, product.productId, product.quantity, product.price]
+      );
+    }
+
+    await client.query('COMMIT');
+    
+    // Fetch the complete order with items
+    return await getOrderById(order.id);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error creating order:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
 };
 
 /**
  * Update order status
- * TODO: Replace with: UPDATE orders SET order_status = $1, updated_at = $2 WHERE id = $3;
+ * UPDATE orders SET order_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2;
  */
-export const updateOrderStatus = (id, status) => {
-  const order = getOrderById(id);
-  if (!order) return null;
-
-  order.orderStatus = status;
-  order.updatedAt = new Date().toISOString();
-  return order;
+export const updateOrderStatus = async (id, status) => {
+  try {
+    const result = await query(
+      `UPDATE orders 
+       SET order_status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING *`,
+      [status, id]
+    );
+    
+    if (result.rows[0]) {
+      return await getOrderById(id);
+    }
+    return null;
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
 };
 
 export default {
