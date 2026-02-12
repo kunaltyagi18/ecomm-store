@@ -1,43 +1,24 @@
-# Dependencies
-node_modules/
-npm-debug.log
-yarn-error.log
-pnpm-debug.log
-
-# Build files
-dist/
-dist-ssr/
-build/
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*.swc
-*.sublime-workspace
-.DS_Store
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.seed.js
-
 # Logs
-logs/
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Coverage
-coverage/
-.nyc_output/
+node_modules
+dist
+dist-ssr
+*.local
 
-# Misc
-.cache/
-.parcel-cache/
-.eslintcache
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
