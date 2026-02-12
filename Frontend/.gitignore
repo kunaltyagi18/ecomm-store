@@ -1,15 +1,13 @@
 # Dependencies
 node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lockb
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
 
 # Build files
 dist/
+dist-ssr/
 build/
-.next/
-out/
 
 # Environment variables
 .env
@@ -25,26 +23,21 @@ out/
 *.sublime-workspace
 .DS_Store
 
-# OS
-Thumbs.db
-.DS_Store
+# Runtime data
+pids/
+*.pid
+*.seed
+*.seed.js
 
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
-# Runtime
-.cache/
-.parcel-cache/
-.eslintcache
-
-# Testing
+# Coverage
 coverage/
 .nyc_output/
 
 # Misc
-.turbo/
+.cache/
+.parcel-cache/
+.eslintcache

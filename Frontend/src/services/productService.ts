@@ -1,4 +1,4 @@
-import api, { USE_MOCK_DATA } from './api';
+import api, { USE_MOCK_DATA, transformBackendProduct } from './api';
 import { Product, ProductFilters, ProductsResponse } from '@/types';
 import { mockProducts } from '@/data/mockProducts';
 
@@ -63,9 +63,48 @@ export const productService = {
         pages: Math.ceil(filtered.length / limit),
       };
     }
-    
-    const response = await api.get<ProductsResponse>('/products', { params: filters });
-    return response.data;
+
+    try {
+      // Call backend API to get all products
+      const response = await api.get<any>('/products');
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+
+      // Transform backend response to frontend format
+      const products = response.data.data.map(transformBackendProduct);
+
+      // Apply client-side filtering and sorting
+      let filtered = [...products];
+
+      if (filters?.category && filters.category !== 'All') {
+        filtered = filtered.filter(p => p.category === filters.category);
+      }
+
+      if (filters?.search) {
+        const search = filters.search.toLowerCase();
+        filtered = filtered.filter(p =>
+          p.title.toLowerCase().includes(search) ||
+          p.description.toLowerCase().includes(search)
+        );
+      }
+
+      // Pagination
+      const page = filters?.page || 1;
+      const limit = filters?.limit || 12;
+      const start = (page - 1) * limit;
+      const paginatedProducts = filtered.slice(start, start + limit);
+
+      return {
+        products: paginatedProducts,
+        total: filtered.length,
+        page,
+        pages: Math.ceil(filtered.length / limit),
+      };
+    } catch (error) {
+      console.error('Error fetching products from backend:', error);
+      throw error;
+    }
   },
 
   async getById(id: string): Promise<Product> {
@@ -75,9 +114,18 @@ export const productService = {
       if (!product) throw new Error('Product not found');
       return product;
     }
-    
-    const response = await api.get<Product>(`/products/${id}`);
-    return response.data;
+
+    try {
+      // Backend uses numeric IDs, but frontend uses _id
+      const response = await api.get<any>(`/products/${id}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+      return transformBackendProduct(response.data.data);
+    } catch (error) {
+      console.error('Error fetching product from backend:', error);
+      throw error;
+    }
   },
 
   async getFeatured(): Promise<Product[]> {
@@ -85,9 +133,20 @@ export const productService = {
       await delay(400);
       return mockProducts.filter(p => p.isFeatured);
     }
-    
-    const response = await api.get<Product[]>('/products/featured');
-    return response.data;
+
+    try {
+      // Backend doesn't have a featured endpoint, so get all and filter
+      const response = await api.get<any>('/products');
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+
+      // Return first 6 products as featured
+      return response.data.data.slice(0, 6).map(transformBackendProduct);
+    } catch (error) {
+      console.error('Error fetching featured products from backend:', error);
+      throw error;
+    }
   },
 
   async create(data: Partial<Product>): Promise<Product> {
@@ -111,8 +170,8 @@ export const productService = {
       return newProduct;
     }
     
-    const response = await api.post<Product>('/products', data);
-    return response.data;
+    // Backend create not implemented yet (would be admin only)
+    throw new Error('Create product not available');
   },
 
   async update(id: string, data: Partial<Product>): Promise<Product> {
@@ -123,8 +182,8 @@ export const productService = {
       return { ...product, ...data, updatedAt: new Date().toISOString() };
     }
     
-    const response = await api.put<Product>(`/products/${id}`, data);
-    return response.data;
+    // Backend update not implemented yet (would be admin only)
+    throw new Error('Update product not available');
   },
 
   async delete(id: string): Promise<void> {
@@ -133,6 +192,7 @@ export const productService = {
       return;
     }
     
-    await api.delete(`/products/${id}`);
+    // Backend delete not implemented yet (would be admin only)
+    throw new Error('Delete product not available');
   },
 };

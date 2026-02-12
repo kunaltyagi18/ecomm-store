@@ -5,6 +5,20 @@ import { mockUsers, mockCredentials } from '@/data/mockUsers';
 // Simulate network delay for mock data
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+/**
+ * Transform backend user response to frontend User type
+ * Backend: { id, name, email }
+ * Frontend: { _id, name, email, role }
+ */
+const transformBackendUser = (backendUser: any, token?: string): User => ({
+  _id: backendUser.id,
+  name: backendUser.name,
+  email: backendUser.email,
+  role: 'user',
+  createdAt: backendUser.createdAt || new Date().toISOString(),
+  updatedAt: backendUser.updatedAt || new Date().toISOString(),
+});
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     if (USE_MOCK_DATA) {
@@ -22,9 +36,15 @@ export const authService = {
       
       throw new Error('Invalid email or password');
     }
-    
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
-    return response.data;
+
+    try {
+      // Backend doesn't have login endpoint yet (would need JWT auth)
+      // For now, use mock login
+      throw new Error('Login with backend not implemented yet. Use mock data.');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      throw error;
+    }
   },
 
   async register(data: RegisterCredentials): Promise<AuthResponse> {
@@ -48,9 +68,29 @@ export const authService = {
       const token = 'mock-jwt-token-' + newUser._id;
       return { user: newUser, token };
     }
-    
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    return response.data;
+
+    try {
+      // Call backend to create user
+      const response = await api.post<any>('/users', {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+
+      const user = transformBackendUser(response.data.data);
+      
+      // Generate a simple token for now (in production, backend would return JWT)
+      const token = 'bearer-token-' + user._id;
+
+      return { user, token };
+    } catch (error) {
+      console.error('Error registering:', error);
+      throw error;
+    }
   },
 
   async getProfile(): Promise<User> {
@@ -62,9 +102,24 @@ export const authService = {
       }
       throw new Error('Not authenticated');
     }
-    
-    const response = await api.get<User>('/auth/profile');
-    return response.data;
+
+    try {
+      // Get user ID from localStorage
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await api.get<any>(`/users/${userId}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
+
+      return transformBackendUser(response.data.data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      throw error;
+    }
   },
 
   async updateProfile(data: Partial<User>): Promise<User> {
@@ -79,12 +134,13 @@ export const authService = {
       throw new Error('Not authenticated');
     }
     
-    const response = await api.put<User>('/auth/profile', data);
-    return response.data;
+    // Backend doesn't have update profile endpoint yet
+    throw new Error('Update profile not available');
   },
 
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('userId');
   },
 };
