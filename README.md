@@ -303,10 +303,5 @@ If you find a bug, please create an issue in the GitHub repository with:
 - [ ] Social media integration
 - [ ] Multi-language support
 
-## 📞 Support
-
-For support, email kunaltyagi18@example.com or open an issue on GitHub.
-
----
 
 **Happy Coding! 🚀**
